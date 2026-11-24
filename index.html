@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StockSetu 3D — warehouse slotting you can watch</title>
+<meta name="description" content="A 3D warehouse slotting and picking simulator. Watch pickers walk, then move the fast movers near the dock and watch the walk shrink.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%233d9970'/><text x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='monospace' font-weight='bold'>S</text></svg>">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js" } }
+</script>
+</head>
+<body>
+
+<header class="hero">
+  <p class="eyebrow"><span class="chip chip-a"></span>StockSetu 3D · warehouse slotting, made visible</p>
+  <h1>Your pickers are<br>walking too far.</h1>
+  <p class="lede">In most godowns, goods are kept wherever they landed on the day
+  they arrived. The tea and detergent that sell every day end up at the far end,
+  and the slow stock sits next to the dock. Every order then becomes a long walk.</p>
+  <p class="lede">This page lets you <strong>watch that walk</strong> — and then fix it by
+  moving the fast movers near the dock. That one change is called <strong>slotting</strong>.</p>
+  <p class="note">A teaching model with simple rules. Every number on this page comes
+  out of the model while you watch — nothing is typed in by hand.</p>
+</header>
+
+<main>
+  <!-- ============ THE SOLUTION: LIVE FLOOR ============ -->
+  <section class="floor-section" id="simulator">
+    <p class="eyebrow"><span class="chip chip-b"></span>R1 · The floor, live</p>
+    <h2>One warehouse, two ways of keeping it</h2>
+    <p class="section-lede">Orders land on the dock. Three pickers walk the aisles,
+    collect what each order asks for, and bring it back. Where a product sits
+    decides how far they walk. Run it as found — then switch the layout and watch
+    the averages move.</p>
+
+    <div class="control-bar" role="group" aria-label="Simulator controls">
+      <button id="btn-play" class="btn btn-primary" type="button">Pause</button>
+      <label class="rate-control" for="rate">
+        <span>Orders arriving: <strong id="rate-value">6</strong> / min</span>
+        <input id="rate" type="range" min="1" max="12" step="1" value="6">
+      </label>
+      <div class="layout-toggle" role="group" aria-label="Warehouse layout">
+        <button id="layout-asfound" class="btn btn-toggle is-active" type="button" aria-pressed="true">As found</button>
+        <button id="layout-slotted" class="btn btn-toggle" type="button" aria-pressed="false">Slotted</button>
+      </div>
+      <button id="btn-reset" class="btn" type="button">Reset shift</button>
+    </div>
+    <p class="layout-note" id="layout-note">Layout: <strong>As found</strong> — goods sit in a shuffled order, like a real godown that grew on its own. Counters below are for this layout.</p>
+
+    <div class="floor-plate">
+      <div class="canvas-wrap">
+        <canvas id="scene" aria-label="3D warehouse floor. Drag to look around, scroll to zoom, click a rack row for its numbers."></canvas>
+        <p class="canvas-hint">Drag to look around · scroll to zoom · <strong>click a rack row</strong> for its numbers</p>
+      </div>
+      <aside class="rail">
+        <div class="stats" aria-live="off">
+          <div class="stat"><span class="stat-num" id="stat-orders">0</span><span class="stat-label">orders completed</span></div>
+          <div class="stat"><span class="stat-num" id="stat-avg">–</span><span class="stat-label">average pick time</span></div>
+          <div class="stat"><span class="stat-num" id="stat-distance">0 m</span><span class="stat-label">distance walked</span></div>
+          <div class="stat"><span class="stat-num" id="stat-queue">0</span><span class="stat-label">orders waiting at the dock</span></div>
+        </div>
+        <div class="legend">
+          <p class="legend-title">What is in the bays</p>
+          <p><span class="chip chip-a"></span><strong>A</strong> — fast movers. Orders ask for these most.</p>
+          <p><span class="chip chip-b"></span><strong>B</strong> — steady sellers.</p>
+          <p><span class="chip chip-c"></span><strong>C</strong> — slow movers. Rarely asked for.</p>
+        </div>
+        <div class="zone-panel" id="zone-panel">
+          <p class="zone-title">Rack numbers</p>
+          <p class="zone-empty">Click any rack row on the floor and its numbers will show here — how many picks came from it, and how much walking those picks took.</p>
+          <div class="zone-body" hidden>
+            <p class="zone-name" id="zone-name">R1</p>
+            <p><span class="zone-num" id="zone-picks">0</span> picks from this row</p>
+            <p><span class="zone-num" id="zone-distance">0 m</span> walked for those picks</p>
+            <p class="zone-stock" id="zone-stock"></p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ THE OUTCOME: COMPARISON ============ -->
+  <section class="outcome-section" id="outcome">
+    <p class="eyebrow"><span class="chip chip-a"></span>R2 · The proof</p>
+    <h2>Same orders, both layouts</h2>
+    <p class="section-lede">Press the button. The model takes the same 60 orders —
+    same items, same three pickers — and runs them start to finish through both
+    layouts. The table is filled from that run, not from a brochure.</p>
+    <button id="btn-compare" class="btn btn-primary btn-big" type="button">Run the comparison</button>
+    <div id="compare-results" hidden>
+      <table class="compare-table">
+        <thead>
+          <tr><th scope="col">Layout</th><th scope="col">Orders done</th><th scope="col">Average pick time</th><th scope="col">Total distance walked</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">As found</th><td id="cmp-af-orders">–</td><td id="cmp-af-avg">–</td><td id="cmp-af-dist">–</td></tr>
+          <tr class="row-slotted"><th scope="row">Slotted</th><td id="cmp-sl-orders">–</td><td id="cmp-sl-avg">–</td><td id="cmp-sl-dist">–</td></tr>
+        </tbody>
+      </table>
+      <p class="takeaway" id="cmp-takeaway"></p>
+    </div>
+
+    <div class="rules">
+      <h3>The simple rules of this model</h3>
+      <ul>
+        <li>72 products in 6 rack rows, 3 pickers, 1 dock. Orders ask for fast movers far more often than slow ones — roughly 10 : 4 : 1 for A : B : C.</li>
+        <li>Pickers walk at 4.5 m/s and take 2 seconds per pick. Speeds are set fast on purpose, so a shift fits into minutes.</li>
+        <li>Pick time counts from a picker taking an order to bringing it back to the dock. Time waiting in the dock queue is not counted as pick time.</li>
+        <li>Pickers travel along the cross-aisle and up the aisles — nobody walks through a rack.</li>
+        <li>No traffic jams, no empty bays, no breakage, no lunch breaks. Real warehouses are messier. But the direction of the result is the one real slotting projects see: keep the fast movers close, and the walking shrinks.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p><strong>StockSetu 3D</strong> — a teaching model for warehouse slotting, built for the
+  i-Hack E-Summit ’26 Creative Newtech Innovation Challenge. It is a simulator,
+  not a warehouse product. Distances are in metres, inside the model.</p>
+</footer>
+
+<script src="js/engine.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

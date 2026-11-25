@@ -23,6 +23,12 @@
   moving the fast movers near the dock. That one change is called <strong>slotting</strong>.</p>
   <p class="note">A teaching model with simple rules. Every number on this page comes
   out of the model while you watch — nothing is typed in by hand.</p>
+  <div class="canvas-wrap hero-stage">
+    <canvas id="scene" aria-label="3D warehouse floor. Drag to look around, scroll to zoom, click a rack row for its numbers."></canvas>
+    <p class="canvas-hint">Drag to look around · scroll to zoom · <strong>click a rack row</strong> for its numbers</p>
+  </div>
+  <p class="canvas-note">The floor above is live — pickers are walking now.</p>
+  <a class="scroll-cue" href="#simulator">↓ Scroll — fix the slotting below</a>
 </header>
 
 <main>
@@ -30,7 +36,7 @@
   <section class="floor-section" id="simulator">
     <p class="eyebrow"><span class="chip chip-b"></span>R1 · The floor, live</p>
     <h2>One warehouse, two ways of keeping it</h2>
-    <p class="section-lede">Orders land on the dock. Three pickers walk the aisles,
+    <p class="section-lede">The floor above is live: orders land on the dock. Three pickers walk the aisles,
     collect what each order asks for, and bring it back. Where a product sits
     decides how far they walk. Run it as found — then switch the layout and watch
     the averages move.</p>
@@ -50,10 +56,6 @@
     <p class="layout-note" id="layout-note">Layout: <strong>As found</strong> — goods sit in a shuffled order, like a real godown that grew on its own. Counters below are for this layout.</p>
 
     <div class="floor-plate">
-      <div class="canvas-wrap">
-        <canvas id="scene" aria-label="3D warehouse floor. Drag to look around, scroll to zoom, click a rack row for its numbers."></canvas>
-        <p class="canvas-hint">Drag to look around · scroll to zoom · <strong>click a rack row</strong> for its numbers</p>
-      </div>
       <aside class="rail">
         <div class="stats" aria-live="off">
           <div class="stat"><span class="stat-num" id="stat-orders">0</span><span class="stat-label">orders completed</span></div>
